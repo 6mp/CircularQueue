@@ -9,5 +9,11 @@
 #include <immintrin.h>
 
 auto main() -> int {
-  std::printf("hello");
+  std::printf("hello\n");
+  constexpr std::vector<int> aaa{1, 2, 3, 4};
+  auto q = CircularQueue<int, 10>{};
+  q.pop();
+  q.pop();
+
+  std::cout << q.peek() << std::endl;
 }
