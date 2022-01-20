@@ -9,27 +9,30 @@
 #include <ranges>
 #include <iostream>
 #include <cstdint>
+#include <cstdlib>
 #include <algorithm>
 #include <vector>
+#include <bit>
 
 template <typename Ty, std::size_t Size>
 class CircularQueue {
 	std::size_t m_head{};
 	std::size_t m_tail{};
-	std::vector<Ty> m_storage{};
+	Ty* const m_storage{};
 
 	constexpr auto increment(std::size_t value) { return (value + 1) % Size; }
 
 public:
 	// Has to be explicit to stop initializer_list ctor from being used
-	constexpr explicit CircularQueue() : m_head(0), m_tail(0), m_storage(Size) {}
+	constexpr explicit CircularQueue()
+		: m_head(0), m_tail(0), m_storage(std::bit_cast<Ty*>(std::malloc(sizeof(Ty) * Size))) {}
 
-	// I do m_tail(sizeof...(values)) - 1 because of 0 indexed arrays
 	template <typename... Args>
-	constexpr explicit CircularQueue(Args&&... args) : m_head(0), m_tail(sizeof...(args) - 1) {
-		static_assert(sizeof...(args) <= Size, "parameter pack size must be <= Size");
-		(m_storage.emplace_back(std::forward<Args>(args)), ...);
-		m_storage.resize(Size);
+	constexpr explicit CircularQueue(Args&&... values)
+		: m_head(0), m_storage(std::bit_cast<Ty*>(std::malloc(sizeof(Ty) * Size))) {
+		static_assert(sizeof...(values) <= Size, "parameter pack size must be <= Size");
+		((m_storage[m_tail++] = std::forward<Args>(values)), ...);
+		std::printf("current tail %llu\n", m_tail);
 	}
 
 	//	template <std::input_iterator InputIt>
@@ -45,11 +48,19 @@ public:
 	//		std::ranges::copy(container, m_storage);
 	//	}
 
-	constexpr ~CircularQueue() = default;
+	constexpr ~CircularQueue() { std::free(m_storage); }
+
+	//Copy assignment operator and copy constructor
+	CircularQueue(const CircularQueue& other) {}
+	CircularQueue& operator=(const CircularQueue& other) { return *this; }
+
+	//Move assignment operator and move constructor
+	CircularQueue(CircularQueue&& other) noexcept {}
+	CircularQueue& operator=(CircularQueue&& rhs) noexcept { return *this; }
 
 	//  modification
 	constexpr auto push(Ty&& value) {
-		std::construct_at(&m_storage[m_tail], std::forward<Ty>(value));
+		m_storage[m_tail] = std::forward<Ty>(value);
 		m_tail = increment(m_tail);
 	}
 
@@ -61,7 +72,7 @@ public:
 	}
 
 	constexpr auto pop() {
-		m_storage[m_head].~Ty();
+		std::destroy_at(&m_storage[m_tail]);
 		m_head = increment(m_head);
 	}
 
@@ -71,8 +82,7 @@ public:
 	}
 
 	constexpr auto clear() {
-		// I don't want to deallocate until I absolutely have to
-		std::ranges::for_each(m_storage, [](auto& value) { value.~Ty(); });
+		for (auto i = m_head; i != m_tail; ++i) { std::destroy_at(m_storage[i]); }
 		m_head = 0;
 		m_tail = 0;
 	}

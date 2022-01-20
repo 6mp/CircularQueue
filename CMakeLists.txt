@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 project(CircularQueue)
 
 set(CMAKE_CXX_STANDARD 23)
-set(COMPILER_FLAGS "-mavx -Wall -Wpedantic")
+set(COMPILER_FLAGS "-mavx -Wall -Wpedantic -static -static-libgcc -static-libstdc++")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS}")
