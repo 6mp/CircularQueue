@@ -10,8 +10,7 @@
 
 auto main() -> int {
   std::printf("hello\n");
-  constexpr std::vector<int> aaa{1, 2, 3, 4};
-  auto q = CircularQueue<int, 10>{};
+  auto q = CircularQueue<int, 10>{1,2,3};
   q.pop();
   q.pop();
 
