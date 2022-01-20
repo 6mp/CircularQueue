@@ -8,11 +8,19 @@
 #include <iostream>
 #include <immintrin.h>
 
-auto main() -> int {
-  std::printf("hello\n");
-  auto q = CircularQueue<int, 10>{1,2,3};
-  q.pop();
-  q.pop();
+struct Test {
+	Test() {
+		std::printf("ctor called\n");
+	}
 
-  std::cout << q.peek() << std::endl;
+	~Test() {
+		std::printf("dtor called\n");
+	}
+};
+
+auto main() -> int {
+	std::printf("hello\n");
+	auto q = CircularQueue<Test, 10>{Test{}, Test{}, Test{}, Test{}, Test{}};
+
+	//std::cout << q.peek() << std::endl;
 }
