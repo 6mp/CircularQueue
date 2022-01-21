@@ -15,63 +15,64 @@
 #include <bit>
 
 
-namespace detail {
-	constexpr auto increment(std::size_t value) { return (value + 1) % 10; }
-	constexpr auto decrement(std::size_t value) { return (value - 1) % 10; }
-}// namespace detail
-
 template <typename Ty>
 class CircularIterator {
-private:
+public:
+	using iterator_concept = std::contiguous_iterator_tag;
 	using iterator_category = std::forward_iterator_tag;
+	using difference_type = std::ptrdiff_t;
 	using value_type = Ty;
 	using pointer = Ty*;
 	using reference = Ty&;
-	using difference_type = std::ptrdiff_t;
+
+	explicit CircularIterator(pointer buffer, std::size_t pos) : m_pos(pos), m_buffer(buffer) {}
+
+	constexpr auto& operator++() {
+		m_pos++;
+		return *this;
+	}
+	constexpr auto& operator--() {
+		m_pos--;
+		return *this;
+	}
+
+	constexpr auto operator++(int) {
+		auto temp = *this;
+		++(*this);
+		return temp;
+	}
+
+	constexpr auto operator--(int) {
+		auto temp = *this;
+		--(*this);
+		return temp;
+	}
+
+	constexpr auto& operator+(std::size_t val) {
+		m_pos += val;
+		return *this;
+	}
+
+	constexpr auto& operator-(std::size_t val) {
+		m_pos -= val;
+		return *this;
+	}
+
+	template <class Tx>
+	constexpr bool operator==(const CircularIterator<Tx>& lhs) const noexcept {
+		return lhs.m_buffer == this->m_buffer && lhs.m_pos == m_pos;
+	}
+
+	template <typename Tx>
+	constexpr bool operator!=(const CircularIterator<Tx>& lhs) const noexcept {
+		return !(operator==(lhs));
+	}
+
+	constexpr auto operator*() const { return m_buffer[m_pos]; }
+	constexpr auto operator->() const { return std::addressof((m_buffer[m_pos])); }
 
 	std::size_t m_pos{};
 	pointer m_buffer{};
-
-public:
-	constexpr CircularIterator(pointer buffer, std::size_t pos) : m_pos(pos), m_buffer(buffer) {}
-
-	constexpr reference operator*() const noexcept { return m_buffer[m_pos]; }
-	constexpr pointer operator->() const noexcept { return std::addressof((m_buffer[m_pos])); }
-
-	// Prefix operators
-	constexpr auto& operator++() noexcept {
-		m_pos = detail::increment(m_pos);
-		return *this;
-	}
-
-	constexpr auto& operator--() noexcept {
-		m_pos = detail::decrement(m_pos);
-		return *this;
-	}
-
-	// Postfix operators
-	constexpr auto operator++(int) noexcept {
-		const auto temp = *this;
-		m_pos = detail::increment(m_pos);
-		return temp;
-	}
-
-	constexpr auto operator--(int) noexcept {
-		auto temp = *this;
-		m_pos = detail::decrement(m_pos);
-		return temp;
-	}
-
-
-	template <typename Tx>
-	constexpr bool operator==(const CircularIterator<Tx>& rhs) const noexcept {
-		return rhs.m_pos == m_pos && rhs.m_buffer == m_buffer;
-	}
-
-	template <typename Tx>
-	constexpr bool operator!=(const CircularIterator<Tx>& rhs) const noexcept {
-		return !(operator==(rhs));
-	}
 };
 
 template <typename Ty, std::size_t Size>
@@ -80,15 +81,16 @@ class CircularQueue {
 	std::size_t m_tail{};
 	Ty* const m_storage{};
 
+	constexpr static auto increment(std::size_t value) { return (value + 1) % Size; }
+
 	constexpr auto& increment_head() {
-		m_head = this->increment(m_head);
+		m_head = increment(m_head);
 		return m_head;
 	}
 	constexpr auto& increment_tail() {
-		m_tail = this->increment(m_tail);
+		m_tail = increment(m_tail);
 		return m_tail;
 	}
-
 
 public:
 	// Has to be explicit to stop initializer_list ctor from being used
@@ -156,9 +158,12 @@ public:
 	}
 
 	// iterators
-	constexpr auto begin() { return CircularIterator<Ty>{m_storage, m_head}; }
-	constexpr auto end() { return CircularIterator<Ty>{m_storage, m_tail}; }
+	constexpr auto begin() { return CircularIterator{m_storage, m_head}; }
+	constexpr auto end() { return CircularIterator{m_storage, m_tail}; }
 
 	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
 	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
+
+	constexpr auto rbegin() { return std::reverse_iterator{begin()}; }
+	constexpr auto rend() { return std::reverse_iterator{end()}; }
 };

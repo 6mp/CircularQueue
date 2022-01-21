@@ -32,10 +32,12 @@ struct Test {
 
 auto main() -> int {
 	std::printf("hello\n");
-	auto q = CircularQueue<int, 10>{1, 2, 3, 4, 5};
+	auto q = CircularQueue<int, 10>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-	for (auto rit = q.cbegin(); rit != q.cend(); ++rit)
-		std::cout << *rit << std::endl;
+	for (auto i = q.begin(); i != q.end(); ++i) {
+		std::cout << *i << std::endl;
+	}
+
 
 	q.clear();
 	//q.pop();
