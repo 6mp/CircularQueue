@@ -34,9 +34,8 @@ auto main() -> int {
 	std::printf("hello\n");
 	auto q = CircularQueue<int, 10>{1, 2, 3, 4, 5};
 
-	for (const auto& number : q)
-		std::cout << number << std::endl;
-
+	for (auto rit = q.cbegin(); rit != q.cend(); ++rit)
+		std::cout << *rit << std::endl;
 
 	q.clear();
 	//q.pop();

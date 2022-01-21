@@ -23,8 +23,11 @@ namespace detail {
 template <typename Ty>
 class CircularIterator {
 private:
+	using iterator_category = std::forward_iterator_tag;
+	using value_type = Ty;
 	using pointer = Ty*;
 	using reference = Ty&;
+	using difference_type = std::ptrdiff_t;
 
 	std::size_t m_pos{};
 	pointer m_buffer{};
@@ -32,7 +35,7 @@ private:
 public:
 	constexpr CircularIterator(pointer buffer, std::size_t pos) : m_pos(pos), m_buffer(buffer) {}
 
-	constexpr reference operator*() const noexcept { return (m_buffer[m_pos]); }
+	constexpr reference operator*() const noexcept { return m_buffer[m_pos]; }
 	constexpr pointer operator->() const noexcept { return std::addressof((m_buffer[m_pos])); }
 
 	// Prefix operators
@@ -59,11 +62,16 @@ public:
 		return temp;
 	}
 
-	constexpr auto operator==(CircularIterator& rhs) {
-		return this->m_buffer == rhs.m_buffer && this->m_pos == rhs.m_pos;
+
+	template <typename Tx>
+	constexpr bool operator==(const CircularIterator<Tx>& rhs) const noexcept {
+		return rhs.m_pos == m_pos && rhs.m_buffer == m_buffer;
 	}
 
-	constexpr auto operator!=(CircularIterator& rhs) { return !(operator==(rhs)); }
+	template <typename Tx>
+	constexpr bool operator!=(const CircularIterator<Tx>& rhs) const noexcept {
+		return !(operator==(rhs));
+	}
 };
 
 template <typename Ty, std::size_t Size>
@@ -153,10 +161,4 @@ public:
 
 	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
 	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
-
-	constexpr auto rbegin() { return std::reverse_iterator{begin()}; }
-	constexpr auto rend() { return std::reverse_iterator{end()}; }
-
-	constexpr auto crbegin() { return std::reverse_iterator{cbegin()}; }
-	constexpr auto crend() { return std::reverse_iterator{cend()}; }
 };
