@@ -128,23 +128,39 @@ public:
 
 	//  modification
 	constexpr auto push(Ty&& value) {
+		if (m_tail == m_head)
+			return false;
+
 		m_storage[m_tail] = std::forward<Ty>(value);
-		m_tail = increment_tail();
+		increment_tail();
+		return true;
 	}
 
 	template <typename... Args>
 	constexpr auto push(Args&&... args) {
 		static_assert(std::is_constructible_v<Ty, Args...>, "Ty must be constructable with args...");
+
+		if (m_tail == m_head)
+			return false;
+
 		std::construct_at(std::addressof(m_storage[m_tail]), std::forward<Args>(args)...);
-		m_tail = increment_tail();
+		increment_tail();
+		return true;
 	}
 
 	constexpr auto pop() {
+		if (m_tail == m_head)
+			return false;
+
 		std::destroy_at(std::addressof(m_storage[m_tail]));
-		m_head = increment_head();
+		increment_head();
+		return true;
 	}
 
-	constexpr auto peek() {
+	constexpr auto peek() -> std::optional<Ty&> {
+		if (m_tail == m_head)
+			return std::nullopt;
+
 		auto& value = m_storage[m_head];
 		return value;
 	}

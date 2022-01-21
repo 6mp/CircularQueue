@@ -43,8 +43,14 @@ auto main() -> int {
 	q.pop();
 	q.pop();
 	q.pop();
-	q.pop();
 
 	std::printf("popped 1\n");
+	for (const auto& i : q) { std::printf("%u\n", i); }
+
+	q.push(1);
+	q.push(2);
+	q.push(3);
+
+	std::printf("pushed 3\n");
 	for (const auto& i : q) { std::printf("%u\n", i); }
 }
