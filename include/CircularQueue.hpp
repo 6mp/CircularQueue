@@ -18,7 +18,6 @@
 template <typename Ty>
 class CircularIterator {
 public:
-	using iterator_concept = std::contiguous_iterator_tag;
 	using iterator_category = std::forward_iterator_tag;
 	using difference_type = std::ptrdiff_t;
 	using value_type = Ty;
@@ -52,20 +51,19 @@ public:
 		m_pos += val;
 		return *this;
 	}
-
 	constexpr auto& operator-(std::size_t val) {
 		m_pos -= val;
 		return *this;
 	}
 
 	template <class Tx>
-	constexpr bool operator==(const CircularIterator<Tx>& lhs) const noexcept {
-		return lhs.m_buffer == this->m_buffer && lhs.m_pos == m_pos;
+	constexpr bool operator==(const CircularIterator<Tx>& rhs) const noexcept {
+		return rhs.m_buffer == this->m_buffer && rhs.m_pos == m_pos;
 	}
 
 	template <typename Tx>
-	constexpr bool operator!=(const CircularIterator<Tx>& lhs) const noexcept {
-		return !(operator==(lhs));
+	constexpr bool operator!=(const CircularIterator<Tx>& rhs) const noexcept {
+		return !(operator==(rhs));
 	}
 
 	constexpr auto operator*() const { return m_buffer[m_pos]; }
@@ -163,7 +161,4 @@ public:
 
 	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
 	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
-
-	constexpr auto rbegin() { return std::reverse_iterator{begin()}; }
-	constexpr auto rend() { return std::reverse_iterator{end()}; }
 };
