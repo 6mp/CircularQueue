@@ -31,36 +31,25 @@ struct Test {
 };
 
 auto main() -> int {
-	//	int* b = new int[100];
-	//	b[88] = 1;
-	//
-	//	std::printf("hello\n");
-	//	auto q = CircularQueue<int, 10>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-	//
-	//	auto iterator = q.begin();
-	//	std::cout << *iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *++iterator << std::endl;
-	//	std::cout << *q.end() << std::endl;
-	//
-	//	std::printf("anmdjndlkahjdklasnd\n");
-	//
-	//
-	//	for (auto end = q.end(); end != q.begin(); --end) {
-	//		std::cout << *end << std::endl;
-	//	}
+
+	std::printf("hello\n");
+	auto q = CircularQueue<int, 10>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+	auto iterator = q.begin();
+	std::cout << *iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *++iterator << std::endl;
+	std::cout << *q.end() << std::endl;
+
+	std::printf("anmdjndlkahjdklasnd\n");
 
 
-	int i;
-
-	for (i = 0; i < 1000; ++i) { free(malloc(1)); }
-
-	return 0;
+	for (auto end = q.end(); end != q.begin(); --end) { std::cout << *end << std::endl; }
 }
