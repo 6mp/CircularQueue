@@ -24,14 +24,20 @@ public:
 	using pointer = Ty*;
 	using reference = Ty&;
 
-	explicit CircularIterator(pointer buffer, std::size_t pos) : m_pos(pos), m_buffer(buffer) {}
+	explicit CircularIterator(pointer buffer, std::size_t pos, std::size_t displacement)
+		: m_pos(pos), m_displacement(displacement), m_buffer(buffer) {}
+
+	constexpr auto increment(std::size_t value) { return (value + 1) % 10; }
+	constexpr auto decrement(std::size_t value) { return (value + 10 - 1) % 10; }
 
 	constexpr auto& operator++() {
-		m_pos++;
+		m_pos = increment(m_pos);
+		--m_displacement;
 		return *this;
 	}
 	constexpr auto& operator--() {
-		m_pos--;
+		m_pos = decrement(m_pos);
+		++m_displacement;
 		return *this;
 	}
 
@@ -47,18 +53,9 @@ public:
 		return temp;
 	}
 
-	constexpr auto& operator+(std::size_t val) {
-		m_pos += val;
-		return *this;
-	}
-	constexpr auto& operator-(std::size_t val) {
-		m_pos -= val;
-		return *this;
-	}
-
 	template <class Tx>
 	constexpr bool operator==(const CircularIterator<Tx>& rhs) const noexcept {
-		return rhs.m_buffer == this->m_buffer && rhs.m_pos == m_pos;
+		return rhs.m_buffer == this->m_buffer /*&& rhs.m_pos == this->m_pos*/ && rhs.m_displacement == this->m_displacement;
 	}
 
 	template <typename Tx>
@@ -70,6 +67,7 @@ public:
 	constexpr auto operator->() const { return std::addressof((m_buffer[m_pos])); }
 
 	std::size_t m_pos{};
+	std::size_t m_displacement{};
 	pointer m_buffer{};
 };
 
@@ -77,28 +75,17 @@ template <typename Ty, std::size_t Size>
 class CircularQueue {
 	std::size_t m_head{};
 	std::size_t m_tail{};
-	Ty* const m_storage{};
+	Ty m_storage[Size]{};
 
-	constexpr static auto increment(std::size_t value) { return (value + 1) % Size; }
-
-	constexpr auto& increment_head() {
-		m_head = increment(m_head);
-		return m_head;
-	}
-	constexpr auto& increment_tail() {
-		m_tail = increment(m_tail);
-		return m_tail;
-	}
+	constexpr auto increment(std::size_t value) { return (value + 1) % Size; }
 
 public:
 	// Has to be explicit to stop initializer_list ctor from being used
-	constexpr explicit CircularQueue()
-		: m_head(0), m_tail(0), m_storage(std::bit_cast<Ty*>(std::malloc(sizeof(Ty) * Size))) {}
+	constexpr explicit CircularQueue() : m_head(0), m_tail(0), m_storage() {}
 
 	// Paramter pack must be used due to std::initializer_list
 	template <typename... Args>
-	constexpr explicit CircularQueue(Args&&... values)
-		: m_head(0), m_storage(std::bit_cast<Ty*>(std::malloc(sizeof(Ty) * Size))) {
+	constexpr explicit CircularQueue(Args&&... values) : m_head(0), m_storage() {
 		static_assert(sizeof...(values) <= Size, "parameter pack size must be <= Size");
 		((m_storage[m_tail++] = std::forward<Args>(values)), ...);
 	}
@@ -116,7 +103,7 @@ public:
 	//		std::ranges::copy(container, m_storage);
 	//	}
 
-	constexpr ~CircularQueue() { std::free(m_storage); }
+	constexpr ~CircularQueue() = default;
 
 	//Copy assignment operator and copy constructor
 	constexpr CircularQueue(const CircularQueue& other) {}
@@ -128,11 +115,15 @@ public:
 
 	//  modification
 	constexpr auto push(Ty&& value) {
-		if (m_tail == m_head)
+
+		const auto currentTail = m_tail;
+		const auto nextTail = increment(currentTail);
+
+		if (nextTail == m_head)
 			return false;
 
-		m_storage[m_tail] = std::forward<Ty>(value);
-		increment_tail();
+		m_storage[currentTail] = std::forward<Ty>(value);
+		m_tail = nextTail;
 		return true;
 	}
 
@@ -140,11 +131,14 @@ public:
 	constexpr auto push(Args&&... args) {
 		static_assert(std::is_constructible_v<Ty, Args...>, "Ty must be constructable with args...");
 
-		if (m_tail == m_head)
+		const auto currentTail = m_tail;
+		const auto nextTail = increment(currentTail);
+
+		if (nextTail == m_head)
 			return false;
 
-		std::construct_at(std::addressof(m_storage[m_tail]), std::forward<Args>(args)...);
-		increment_tail();
+		std::construct_at(std::addressof(m_storage[currentTail]), std::forward<Args>(args)...);
+		m_tail = nextTail;
 		return true;
 	}
 
@@ -153,15 +147,13 @@ public:
 			return false;
 
 		std::destroy_at(std::addressof(m_storage[m_tail]));
-		increment_head();
+		m_head = increment(m_head);
 		return true;
 	}
 
-	constexpr auto peek() -> std::optional<Ty&> {
-		if (m_tail == m_head)
-			return std::nullopt;
+	constexpr auto peek() {
 
-		auto& value = m_storage[m_head];
+		constexpr auto value = this->m_storage[m_head];
 		return value;
 	}
 
@@ -172,9 +164,12 @@ public:
 	}
 
 	// iterators
-	constexpr auto begin() { return CircularIterator{m_storage, m_head}; }
-	constexpr auto end() { return CircularIterator{m_storage, m_tail}; }
+	constexpr auto begin() { return CircularIterator<Ty>{m_storage, m_head, m_tail - m_head}; }
+	constexpr auto end() { return CircularIterator<Ty>{m_storage, m_tail, 0}; }
+	//
+	//	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
+	//	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
 
-	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
-	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
+	constexpr auto rbegin() { return std::reverse_iterator{begin()}; }
+	constexpr auto rend() { return std::reverse_iterator{end()}; }
 };
