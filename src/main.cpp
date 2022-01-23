@@ -40,5 +40,12 @@ struct Test {
 };
 
 auto main() -> int {
-	auto q = CircularQueue<Test, 10>{};
+	auto q = CircularQueue<Test, 10>{Test{3}};
+	q.push(Test{4});
+	auto bb = Test{5};
+	q.push(bb);
+	q.emplace(6);
+
+	for (const auto& val : q)
+		std::cout << val.m_x << std::endl;
 }
