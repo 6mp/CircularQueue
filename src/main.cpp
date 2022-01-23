@@ -48,4 +48,9 @@ auto main() -> int {
 
 	for (const auto& val : q)
 		std::cout << val.m_x << std::endl;
+
+	std::vector<int> z{1, 2, 3, 4, 5, 6};
+	auto h = CircularQueue<int, 10>{z.begin(), z.end()};
+	for (const auto& val : h)
+		std::cout << val << std::endl;
 }

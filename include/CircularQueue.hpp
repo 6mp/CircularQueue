@@ -84,35 +84,51 @@ class CircularQueue {
 
 public:
 	//
-	//
+	// Default constructor, just allocate needed memory
 	//
 	constexpr explicit CircularQueue() : m_head(0), m_tail(0), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {}
 
 	//
-	// Parameter pack must be used due to std::initializer_list::size() not functioning properly at compile time
+	// Construct a CircularQueue from multiple values
 	//
-	template <typename... Args>
-	constexpr explicit CircularQueue(Args&&... values) : m_head(0), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
-		static_assert(sizeof...(values) <= Size, "parameter pack size must be <= Size");
-		//(new (&m_storage[m_tail++]) Ty{std::forward<Args>(values)}, ...);
-		(std::construct_at(&m_storage[m_tail++], std::forward<Args>(values)), ...);
+	constexpr CircularQueue(std::initializer_list<Ty> values)
+		: m_head(0), m_tail(values.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
+		if (values.size() >= Size) {
+			throw std::runtime_error("std::initializer_list size is too large");
+		}
+		std::ranges::copy(values, m_storage);
 	}
 
-	//	template <std::input_iterator InputIt>
-	//	constexpr CircularQueue(InputIt begin, InputIt end)
-	//		: m_head(0), m_tail(std::distance(begin, end) - 1), m_storage(Size) {
-	//		static_assert(std::distance(begin, end) <= Size, "size is too large");
-	//		std::copy(begin, end, std::back_inserter(m_storage));
-	//	}
+	//
+	// Construct a CircularQueue from a container with begin and end iterators
+	//
+	template <std::input_iterator InputIt>
+	constexpr CircularQueue(InputIt begin, InputIt end)
+		: m_head(0), m_tail(std::distance(begin, end)), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
+		if ((std::size_t)std::distance(begin, end) >= Size) {
+			throw std::runtime_error("container size is too large");
+		}
 
-	//	template <std::ranges::range It>
-	//	explicit CircularQueue(It container) : m_head(0), m_tail(container.size() - 1), m_storage(Size) {
-	//		// static_assert(container.size() <= m_storage.size(), "size too large");
-	//		std::ranges::copy(container, m_storage);
-	//	}
+		std::copy(begin, end, m_storage);
+	}
 
+	//
+	// Construct a CircularQueue from a range container
+	//
+	template <std::ranges::range It>
+	explicit CircularQueue(It container)
+		: m_head(0), m_tail(container.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
+		if (container.size() >= Size) {
+			throw std::runtime_error("container size is too large");
+		}
+		std::ranges::copy(container, m_storage);
+	}
+
+	//
+	// Call destructor of each item in the queue and free allocated memory
+	//
 	constexpr ~CircularQueue() {
-		if (std::is_destructible_v<Ty>) {
+		if constexpr (std::is_destructible_v<Ty>) {
 			clear();
 		}
 		std::free(m_storage);
@@ -167,6 +183,9 @@ public:
 		return true;
 	}
 
+	//
+	//
+	//
 	auto push(Ty&& value) -> bool {
 		const auto currentTail = m_tail;
 		const auto nextTail = wrapper::increment(currentTail);
@@ -198,7 +217,7 @@ public:
 	}
 
 	//
-	//
+	// Call the destructor of the queue head and increment
 	//
 	constexpr auto pop() -> bool {
 		if (m_tail == m_head)
@@ -210,23 +229,26 @@ public:
 	}
 
 	//
-	//
+	// Return a reference to the head of the queue
 	//
 	constexpr auto peek() -> Ty& { return m_storage[m_head]; }
 
 	//
-	//
+	// Call the destructor of each item
+	// Reset head and tail
 	//
 	constexpr auto clear() -> void {
-		for (auto i = m_head; i != m_tail; ++i) {
-			std::destroy_at(std::addressof(m_storage[i]));
+		if constexpr (std::is_destructible_v<Ty>) {
+			for (auto i = m_head; i != m_tail; ++i) {
+				std::destroy_at(std::addressof(m_storage[i]));
+			}
 		}
 		m_head = 0;
 		m_tail = 0;
 	}
 
 	//
-	// iterators
+	// Iterators
 	//
 	constexpr auto begin() { return CircularIterator<Ty, Size>{m_storage, m_head, m_tail - m_head}; }
 	constexpr auto end() { return CircularIterator<Ty, Size>{m_storage, m_tail, 0}; }
