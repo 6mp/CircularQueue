@@ -33,7 +33,6 @@ public:
 	explicit CircularIterator(pointer buffer, std::size_t pos, std::size_t displacement)
 		: m_pos(pos), m_displacement(displacement), m_buffer(buffer) {}
 
-
 	constexpr auto& operator++() {
 		m_pos = wrapper::increment(m_pos);
 		--m_displacement;
@@ -80,22 +79,24 @@ template <typename Ty, std::size_t Size>
 class CircularQueue {
 	std::size_t m_head{};
 	std::size_t m_tail{};
-	Ty m_storage[Size]{};
+	Ty* m_storage;
 	using wrapper = IndexWrapper<Size>;
 
 public:
 	//
 	// Has to be explicit to stop paramter pack ctor from being used
 	//
-	constexpr explicit CircularQueue() : m_head(0), m_tail(0), m_storage() {}
+	constexpr explicit CircularQueue() : m_head(0), m_tail(0), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {}
 
 	//
 	// Parameter pack must be used due to std::initializer_list not functioning properly at compile time
 	//
 	template <typename... Args>
-	constexpr explicit CircularQueue(Args&&... values) : m_head(0), m_storage() {
+	constexpr explicit CircularQueue(Args&&... values) : m_head(0), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		static_assert(sizeof...(values) <= Size, "parameter pack size must be <= Size");
-		((m_storage[m_tail++] = std::forward<Args>(values)), ...);
+		//(new (&m_storage[m_tail++]) Ty{std::forward<Args>(values)}, ...);
+		(std::construct_at(&m_storage[m_tail++], std::forward<Args>(values)), ...);
+
 	}
 
 	//	template <std::input_iterator InputIt>
@@ -111,7 +112,12 @@ public:
 	//		std::ranges::copy(container, m_storage);
 	//	}
 
-	constexpr ~CircularQueue() = default;
+	constexpr ~CircularQueue() {
+		if (std::is_destructible_v<Ty>) {
+			clear();
+		}
+		std::free(m_storage);
+	}
 
 	//
 	//Copy assignment operator and copy constructor
@@ -125,17 +131,30 @@ public:
 	constexpr CircularQueue(CircularQueue&& other) noexcept {}
 	constexpr CircularQueue& operator=(CircularQueue&& rhs) noexcept { return *this; }
 
+
 	//
 	//
 	//
-	constexpr auto push(Ty&& value) {
+	auto push(const Ty& value) -> bool {
 		const auto currentTail = m_tail;
 		const auto nextTail = wrapper::increment(currentTail);
 
 		if (nextTail == m_head)
 			return false;
 
-		m_storage[currentTail] = std::forward<Ty>(value);
+		std::construct_at(std::addressof(m_storage[currentTail]), value);
+		m_tail = nextTail;
+		return true;
+	}
+
+	auto push(Ty&& value) -> bool {
+		const auto currentTail = m_tail;
+		const auto nextTail = wrapper::increment(currentTail);
+
+		if (nextTail == m_head)
+			return false;
+
+		std::construct_at(std::addressof(m_storage[currentTail]), std::forward<Ty>(value));
 		m_tail = nextTail;
 		return true;
 	}
@@ -144,7 +163,7 @@ public:
 	//
 	//
 	template <typename... Args>
-	constexpr auto push(Args&&... args) {
+	auto emplace(Args&&... args) -> bool {
 		static_assert(std::is_constructible_v<Ty, Args...>, "Ty must be constructable with args...");
 
 		const auto currentTail = m_tail;
@@ -161,7 +180,7 @@ public:
 	//
 	//
 	//
-	constexpr auto pop() {
+	constexpr auto pop() -> bool {
 		if (m_tail == m_head)
 			return false;
 
@@ -173,13 +192,15 @@ public:
 	//
 	//
 	//
-	constexpr auto peek() const { return m_storage[m_head]; }
+	constexpr auto peek() -> Ty& { return m_storage[m_head]; }
 
 	//
 	//
 	//
-	constexpr auto clear() {
-		for (auto i = m_head; i != m_tail; ++i) { std::destroy_at(std::addressof(m_storage[i])); }
+	constexpr auto clear() -> void {
+		for (auto i = m_head; i != m_tail; ++i) {
+			std::destroy_at(std::addressof(m_storage[i]));
+		}
 		m_head = 0;
 		m_tail = 0;
 	}
@@ -190,8 +211,8 @@ public:
 	constexpr auto begin() { return CircularIterator<Ty, Size>{m_storage, m_head, m_tail - m_head}; }
 	constexpr auto end() { return CircularIterator<Ty, Size>{m_storage, m_tail, 0}; }
 
-	constexpr auto cbegin() { return CircularIterator<const Ty, Size>{m_storage, m_head}; }
-	constexpr auto cend() { return CircularIterator<const Ty, Size>{m_storage, m_tail}; }
+	constexpr auto cbegin() const { return CircularIterator<const Ty, Size>{m_storage, m_head, m_tail - m_head}; }
+	constexpr auto cend() const { return CircularIterator<const Ty, Size>{m_storage, m_tail, 0}; }
 
 	constexpr auto rbegin() { return std::reverse_iterator{end()}; }
 	constexpr auto rend() { return std::reverse_iterator{begin()}; }
