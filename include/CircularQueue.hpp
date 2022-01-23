@@ -18,7 +18,7 @@
 template <typename Ty>
 class CircularIterator {
 public:
-	using iterator_category = std::forward_iterator_tag;
+	using iterator_category = std::contiguous_iterator_tag;
 	using difference_type = std::ptrdiff_t;
 	using value_type = Ty;
 	using pointer = Ty*;
@@ -55,7 +55,8 @@ public:
 
 	template <class Tx>
 	constexpr bool operator==(const CircularIterator<Tx>& rhs) const noexcept {
-		return rhs.m_buffer == this->m_buffer /*&& rhs.m_pos == this->m_pos*/ && rhs.m_displacement == this->m_displacement;
+		return rhs.m_buffer == this->m_buffer /*&& rhs.m_pos == this->m_pos*/ &&
+			   rhs.m_displacement == this->m_displacement;
 	}
 
 	template <typename Tx>
@@ -80,14 +81,18 @@ class CircularQueue {
 	constexpr auto increment(std::size_t value) { return (value + 1) % Size; }
 
 public:
-	// Has to be explicit to stop initializer_list ctor from being used
+	//
+	// Has to be explicit to stop paramter pack ctor from being used
+	//
 	constexpr explicit CircularQueue() : m_head(0), m_tail(0), m_storage() {}
 
-	// Paramter pack must be used due to std::initializer_list
+	//
+	// Parameter pack must be used due to std::initializer_list not functioning properly at compile time
+	//
 	template <typename... Args>
 	constexpr explicit CircularQueue(Args&&... values) : m_head(0), m_storage() {
 		static_assert(sizeof...(values) <= Size, "parameter pack size must be <= Size");
-		((m_storage[m_tail++] = std::forward<Args>(values)), ...);
+		((m_storage[++m_tail] = std::forward<Args>(values)), ...);
 	}
 
 	//	template <std::input_iterator InputIt>
@@ -105,17 +110,22 @@ public:
 
 	constexpr ~CircularQueue() = default;
 
+	//
 	//Copy assignment operator and copy constructor
+	//
 	constexpr CircularQueue(const CircularQueue& other) {}
 	constexpr CircularQueue& operator=(const CircularQueue& other) { return *this; }
 
+	//
 	//Move assignment operator and move constructor
+	//
 	constexpr CircularQueue(CircularQueue&& other) noexcept {}
 	constexpr CircularQueue& operator=(CircularQueue&& rhs) noexcept { return *this; }
 
-	//  modification
+	//
+	//
+	//
 	constexpr auto push(Ty&& value) {
-
 		const auto currentTail = m_tail;
 		const auto nextTail = increment(currentTail);
 
@@ -127,6 +137,9 @@ public:
 		return true;
 	}
 
+	//
+	//
+	//
 	template <typename... Args>
 	constexpr auto push(Args&&... args) {
 		static_assert(std::is_constructible_v<Ty, Args...>, "Ty must be constructable with args...");
@@ -142,6 +155,9 @@ public:
 		return true;
 	}
 
+	//
+	//
+	//
 	constexpr auto pop() {
 		if (m_tail == m_head)
 			return false;
@@ -151,12 +167,14 @@ public:
 		return true;
 	}
 
-	constexpr auto peek() {
+	//
+	//
+	//
+	constexpr auto peek() const { return m_storage[m_head]; }
 
-		constexpr auto value = this->m_storage[m_head];
-		return value;
-	}
-
+	//
+	//
+	//
 	constexpr auto clear() {
 		for (auto i = m_head; i != m_tail; ++i) { std::destroy_at(std::addressof(m_storage[i])); }
 		m_head = 0;

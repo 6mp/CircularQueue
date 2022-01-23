@@ -33,23 +33,7 @@ struct Test {
 auto main() -> int {
 
 	std::printf("hello\n");
-	auto q = CircularQueue<int, 10>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-
-	auto iterator = q.begin();
-	std::cout << *iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *++iterator << std::endl;
-	std::cout << *q.end() << std::endl;
-
-	std::printf("anmdjndlkahjdklasnd\n");
+	auto q = CircularQueue<int, 10>{1, 2, 3, 4, 5, 6, 7, 8, 9,};
 
 
-	for (auto end = q.end(); end != q.begin(); --end) { std::cout << *end << std::endl; }
 }
