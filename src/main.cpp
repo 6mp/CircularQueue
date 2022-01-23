@@ -9,21 +9,28 @@
 #include <immintrin.h>
 
 struct Test {
-	Test() { std::printf("%s called\n", __PRETTY_FUNCTION__); }
-	explicit Test(int x) : m_x(x) { std::printf("%s called\n", __PRETTY_FUNCTION__); }
-	~Test() { std::printf("%s called\n", __PRETTY_FUNCTION__); }
+	Test() { std::printf("default ctor called\n"); }
+	explicit Test(int x) : m_x(x) { std::printf("specialized ctor called\n"); }
+	~Test() { std::printf("dtor called\n"); }
 
-	Test(const Test& other) { std::printf("%s called\n", __PRETTY_FUNCTION__); }
-	Test& operator=(const Test& other) { std::printf("%s called\n", __PRETTY_FUNCTION__); }
+	Test(const Test& other) {
+		std::printf("copy ctor called\n");
+		this->m_x = other.m_x;
+	}
+	Test& operator=(const Test& other) {
+		std::printf("copy assignment called\n");
+		this->m_x = other.m_x;
+		return *this;
+	}
 
 
 	Test(Test&& other) noexcept {
-		std::printf("%s called\n", __PRETTY_FUNCTION__);
+		std::printf("move ctor called\n");
 		std::swap(this->m_x, other.m_x);
 		other.m_x = 0;
 	}
 	Test& operator=(Test&& other) noexcept {
-		std::printf("%s called\n", __PRETTY_FUNCTION__);
+		std::printf("move assignment called\n");
 		std::swap(this->m_x, other.m_x);
 		other.m_x = 0;
 		return *this;
@@ -34,15 +41,4 @@ struct Test {
 
 auto main() -> int {
 	auto q = CircularQueue<Test, 10>{};
-
-	auto gg = Test{69};
-
-	q.push(gg);
-	q.push(Test{11});
-	q.emplace(70);
-	std::cout << gg.m_x << std::endl;
-
-	for (const auto& a : q) {
-		std::cout << a.m_x << std::endl;
-	}
 }
