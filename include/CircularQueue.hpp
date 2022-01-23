@@ -92,7 +92,7 @@ public:
 	template <typename... Args>
 	constexpr explicit CircularQueue(Args&&... values) : m_head(0), m_storage() {
 		static_assert(sizeof...(values) <= Size, "parameter pack size must be <= Size");
-		((m_storage[++m_tail] = std::forward<Args>(values)), ...);
+		((m_storage[m_tail++] = std::forward<Args>(values)), ...);
 	}
 
 	//	template <std::input_iterator InputIt>
@@ -188,6 +188,6 @@ public:
 	//	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
 	//	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
 
-	constexpr auto rbegin() { return std::reverse_iterator{begin()}; }
-	constexpr auto rend() { return std::reverse_iterator{end()}; }
+	constexpr auto rbegin() { return std::reverse_iterator{end()}; }
+	constexpr auto rend() { return std::reverse_iterator{begin()}; }
 };
