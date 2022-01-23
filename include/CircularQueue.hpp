@@ -14,8 +14,13 @@
 #include <vector>
 #include <bit>
 
+template <std::size_t N>
+struct IndexWrapper {
+	static constexpr auto increment(std::size_t value) { return (value + 1) % N; }
+	static constexpr auto decrement(std::size_t value) { return (value + N - 1) % N; }
+};
 
-template <typename Ty>
+template <typename Ty, std::size_t Size>
 class CircularIterator {
 public:
 	using iterator_category = std::bidirectional_iterator_tag;
@@ -23,20 +28,19 @@ public:
 	using value_type = Ty;
 	using pointer = Ty*;
 	using reference = Ty&;
+	using wrapper = IndexWrapper<Size>;
 
 	explicit CircularIterator(pointer buffer, std::size_t pos, std::size_t displacement)
 		: m_pos(pos), m_displacement(displacement), m_buffer(buffer) {}
 
-	constexpr auto increment(std::size_t value) { return (value + 1) % 10; }
-	constexpr auto decrement(std::size_t value) { return (value + 10 - 1) % 10; }
 
 	constexpr auto& operator++() {
-		m_pos = increment(m_pos);
+		m_pos = wrapper::increment(m_pos);
 		--m_displacement;
 		return *this;
 	}
 	constexpr auto& operator--() {
-		m_pos = decrement(m_pos);
+		m_pos = wrapper::decrement(m_pos);
 		++m_displacement;
 		return *this;
 	}
@@ -53,21 +57,19 @@ public:
 		return temp;
 	}
 
-	template <class Tx>
-	constexpr bool operator==(const CircularIterator<Tx>& rhs) const noexcept {
+	template <typename Tx, std::size_t N>
+	constexpr auto operator==(const CircularIterator<Tx, N>& rhs) const noexcept -> bool {
 		return rhs.m_buffer == this->m_buffer /*&& rhs.m_pos == this->m_pos*/ &&
 			   rhs.m_displacement == this->m_displacement;
 	}
 
-	template <typename Tx>
-	constexpr bool operator!=(const CircularIterator<Tx>& rhs) const noexcept {
+	template <typename Tx, std::size_t N>
+	constexpr auto operator!=(const CircularIterator<Tx, N>& rhs) const noexcept -> bool {
 		return !(operator==(rhs));
 	}
 
-	constexpr auto operator*() const { return m_buffer[m_pos]; }
-	constexpr auto& operator*() { return m_buffer[m_pos]; }
-	constexpr auto operator->() const { return std::addressof((m_buffer[m_pos])); }
-	constexpr auto operator->() { return std::addressof((m_buffer[m_pos])); }
+	constexpr auto operator*() const noexcept -> reference { return m_buffer[m_pos]; }
+	constexpr auto operator->() const noexcept -> pointer { return std::addressof((m_buffer[m_pos])); }
 
 	std::size_t m_pos{};
 	std::size_t m_displacement{};
@@ -79,8 +81,7 @@ class CircularQueue {
 	std::size_t m_head{};
 	std::size_t m_tail{};
 	Ty m_storage[Size]{};
-
-	constexpr auto increment(std::size_t value) { return (value + 1) % Size; }
+	using wrapper = IndexWrapper<Size>;
 
 public:
 	//
@@ -129,7 +130,7 @@ public:
 	//
 	constexpr auto push(Ty&& value) {
 		const auto currentTail = m_tail;
-		const auto nextTail = increment(currentTail);
+		const auto nextTail = wrapper::increment(currentTail);
 
 		if (nextTail == m_head)
 			return false;
@@ -147,7 +148,7 @@ public:
 		static_assert(std::is_constructible_v<Ty, Args...>, "Ty must be constructable with args...");
 
 		const auto currentTail = m_tail;
-		const auto nextTail = increment(currentTail);
+		const auto nextTail = wrapper::increment(currentTail);
 
 		if (nextTail == m_head)
 			return false;
@@ -165,7 +166,7 @@ public:
 			return false;
 
 		std::destroy_at(std::addressof(m_storage[m_tail]));
-		m_head = increment(m_head);
+		m_head = wrapper::increment(m_head);
 		return true;
 	}
 
@@ -186,11 +187,11 @@ public:
 	//
 	// iterators
 	//
-	constexpr auto begin() { return CircularIterator<Ty>{m_storage, m_head, m_tail - m_head}; }
-	constexpr auto end() { return CircularIterator<Ty>{m_storage, m_tail, 0}; }
+	constexpr auto begin() { return CircularIterator<Ty, Size>{m_storage, m_head, m_tail - m_head}; }
+	constexpr auto end() { return CircularIterator<Ty, Size>{m_storage, m_tail, 0}; }
 
-	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
-	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
+	constexpr auto cbegin() { return CircularIterator<const Ty, Size>{m_storage, m_head}; }
+	constexpr auto cend() { return CircularIterator<const Ty, Size>{m_storage, m_tail}; }
 
 	constexpr auto rbegin() { return std::reverse_iterator{end()}; }
 	constexpr auto rend() { return std::reverse_iterator{begin()}; }

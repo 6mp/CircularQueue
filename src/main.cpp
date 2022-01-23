@@ -33,5 +33,6 @@ auto main() -> int {
 	auto q = CircularQueue<Test, 10>{Test{1}, Test{2}, Test{3}, Test{4}, Test{5}};
 	q.push(69);
 
+
 	for (const auto& a : q) { std::cout << a.m_x << std::endl; }
 }
