@@ -84,19 +84,18 @@ class CircularQueue {
 
 public:
 	//
-	// Has to be explicit to stop paramter pack ctor from being used
+	//
 	//
 	constexpr explicit CircularQueue() : m_head(0), m_tail(0), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {}
 
 	//
-	// Parameter pack must be used due to std::initializer_list not functioning properly at compile time
+	// Parameter pack must be used due to std::initializer_list::size() not functioning properly at compile time
 	//
 	template <typename... Args>
 	constexpr explicit CircularQueue(Args&&... values) : m_head(0), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		static_assert(sizeof...(values) <= Size, "parameter pack size must be <= Size");
 		//(new (&m_storage[m_tail++]) Ty{std::forward<Args>(values)}, ...);
 		(std::construct_at(&m_storage[m_tail++], std::forward<Args>(values)), ...);
-
 	}
 
 	//	template <std::input_iterator InputIt>
@@ -120,16 +119,37 @@ public:
 	}
 
 	//
-	//Copy assignment operator and copy constructor
+	// Copy assignment operator and copy constructor
 	//
-	constexpr CircularQueue(const CircularQueue& other) {}
-	constexpr CircularQueue& operator=(const CircularQueue& other) { return *this; }
+	constexpr CircularQueue(const CircularQueue& other) {
+		memcpy(&this->m_storage, &other.m_storage, sizeof(Ty) * Size);
+		this->m_head = other.m_head;
+		this->m_tail = other.m_tail;
+	}
+	constexpr CircularQueue& operator=(const CircularQueue& rhs) {
+		if (rhs == this)
+			return *this;
+
+		memcpy(&this->m_storage, &rhs.m_storage, sizeof(Ty) * Size);
+		this->m_head = rhs.m_head;
+		this->m_tail = rhs.m_tail;
+		return *this;
+	}
 
 	//
-	//Move assignment operator and move constructor
+	// Move assignment operator and move constructor
 	//
-	constexpr CircularQueue(CircularQueue&& other) noexcept {}
-	constexpr CircularQueue& operator=(CircularQueue&& rhs) noexcept { return *this; }
+	constexpr CircularQueue(CircularQueue&& other) noexcept {
+		std::swap(this->m_storage, other.m_storage);
+		std::swap(this->m_head, other.m_head);
+		std::swap(this->m_tail, other.m_tail);
+	}
+	constexpr CircularQueue& operator=(CircularQueue&& rhs) noexcept {
+		std::swap(this->m_storage, rhs.m_storage);
+		std::swap(this->m_head, rhs.m_head);
+		std::swap(this->m_tail, rhs.m_tail);
+		return *this;
+	}
 
 
 	//
