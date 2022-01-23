@@ -18,7 +18,7 @@
 template <typename Ty>
 class CircularIterator {
 public:
-	using iterator_category = std::contiguous_iterator_tag;
+	using iterator_category = std::bidirectional_iterator_tag;
 	using difference_type = std::ptrdiff_t;
 	using value_type = Ty;
 	using pointer = Ty*;
@@ -184,10 +184,13 @@ public:
 	// iterators
 	constexpr auto begin() { return CircularIterator<Ty>{m_storage, m_head, m_tail - m_head}; }
 	constexpr auto end() { return CircularIterator<Ty>{m_storage, m_tail, 0}; }
-	//
-	//	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
-	//	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
+
+	constexpr auto cbegin() { return CircularIterator<const Ty>{m_storage, m_head}; }
+	constexpr auto cend() { return CircularIterator<const Ty>{m_storage, m_tail}; }
 
 	constexpr auto rbegin() { return std::reverse_iterator{end()}; }
 	constexpr auto rend() { return std::reverse_iterator{begin()}; }
+
+	constexpr auto crbegin() { return std::reverse_iterator{cend()}; }
+	constexpr auto crend() { return std::reverse_iterator{cbegin()}; }
 };
