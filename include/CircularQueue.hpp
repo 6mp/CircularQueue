@@ -65,7 +65,9 @@ public:
 	}
 
 	constexpr auto operator*() const { return m_buffer[m_pos]; }
+	constexpr auto& operator*() { return m_buffer[m_pos]; }
 	constexpr auto operator->() const { return std::addressof((m_buffer[m_pos])); }
+	constexpr auto operator->() { return std::addressof((m_buffer[m_pos])); }
 
 	std::size_t m_pos{};
 	std::size_t m_displacement{};
@@ -181,7 +183,9 @@ public:
 		m_tail = 0;
 	}
 
+	//
 	// iterators
+	//
 	constexpr auto begin() { return CircularIterator<Ty>{m_storage, m_head, m_tail - m_head}; }
 	constexpr auto end() { return CircularIterator<Ty>{m_storage, m_tail, 0}; }
 
