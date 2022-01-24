@@ -6,7 +6,6 @@
 #include <CircularQueue.hpp>
 #include <ranges>
 #include <iostream>
-#include <immintrin.h>
 
 struct Test {
 	Test() { std::printf("default ctor called\n"); }
@@ -17,7 +16,7 @@ struct Test {
 		std::printf("copy ctor called\n");
 		this->m_x = other.m_x;
 	}
-	Test& operator=(const Test& other) {
+	auto operator=(const Test& other) -> Test& {
 		std::printf("copy assignment called\n");
 		this->m_x = other.m_x;
 		return *this;
@@ -29,7 +28,7 @@ struct Test {
 		std::swap(this->m_x, other.m_x);
 		other.m_x = 0;
 	}
-	Test& operator=(Test&& other) noexcept {
+	auto operator=(Test&& other) noexcept -> Test& {
 		std::printf("move assignment called\n");
 		std::swap(this->m_x, other.m_x);
 		other.m_x = 0;
