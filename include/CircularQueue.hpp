@@ -90,7 +90,7 @@ public:
 	//
 	// Construct a CircularQueue from multiple values
 	//
-	constexpr CircularQueue(std::initializer_list<Ty> values)
+	 CircularQueue(std::initializer_list<Ty> values)
 		: m_tail(values.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		if (values.size() >= Size) {
 			throw std::runtime_error("std::initializer_list size is too large");
@@ -102,7 +102,7 @@ public:
 	// Construct a CircularQueue from a container with begin and end iterators
 	//
 	template <std::input_iterator InputIt>
-	constexpr CircularQueue(InputIt begin, InputIt end)
+	 CircularQueue(InputIt begin, InputIt end)
 		: m_tail(std::distance(begin, end)), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		if ((std::size_t)std::distance(begin, end) >= Size) {
 			throw std::runtime_error("container size is too large");
@@ -126,7 +126,7 @@ public:
 	//
 	// Call destructor of each item in the queue and free allocated memory
 	//
-	constexpr ~CircularQueue() {
+	~CircularQueue() {
 		if constexpr (std::is_destructible_v<Ty>) {
 			clear();
 		}
@@ -136,12 +136,12 @@ public:
 	//
 	// Copy assignment operator and copy constructor
 	//
-	constexpr CircularQueue(const CircularQueue& other) {
+	CircularQueue(const CircularQueue& other) {
 		memcpy(&this->m_storage, &other.m_storage, sizeof(Ty) * Size);
 		this->m_head = other.m_head;
 		this->m_tail = other.m_tail;
 	}
-	constexpr auto operator=(const CircularQueue& rhs) -> CircularQueue& {
+	auto operator=(const CircularQueue& rhs) -> CircularQueue& {
 		if (rhs == this)
 			return *this;
 
@@ -154,12 +154,12 @@ public:
 	//
 	// Move assignment operator and move constructor
 	//
-	constexpr CircularQueue(CircularQueue&& other) noexcept {
+	CircularQueue(CircularQueue&& other) noexcept {
 		std::swap(this->m_storage, other.m_storage);
 		std::swap(this->m_head, other.m_head);
 		std::swap(this->m_tail, other.m_tail);
 	}
-	constexpr auto operator =(CircularQueue&& rhs) noexcept -> CircularQueue& {
+	 auto operator =(CircularQueue&& rhs) noexcept -> CircularQueue& {
 		std::swap(this->m_storage, rhs.m_storage);
 		std::swap(this->m_head, rhs.m_head);
 		std::swap(this->m_tail, rhs.m_tail);
@@ -218,7 +218,7 @@ public:
 	//
 	// Call the destructor of the queue head and increment
 	//
-	constexpr auto pop() -> bool {
+	 auto pop() -> bool {
 		if (m_tail == m_head)
 			return false;
 
@@ -230,13 +230,13 @@ public:
 	//
 	// Return a reference to the head of the queue
 	//
-	constexpr auto peek() -> Ty& { return m_storage[m_head]; }
+	auto peek() -> Ty& { return m_storage[m_head]; }
 
 	//
 	// Call the destructor of each item
 	// Reset head and tail
 	//
-	constexpr auto clear() -> void {
+	 auto clear() -> void {
 		if constexpr (std::is_destructible_v<Ty>) {
 			for (auto i = m_head; i != m_tail; ++i)
 				std::destroy_at(std::addressof(m_storage[i]));
