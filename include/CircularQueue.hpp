@@ -57,8 +57,7 @@ struct CircularIterator {
 
 	template <typename Tx, std::size_t N>
 	constexpr auto operator==(const CircularIterator<Tx, N>& rhs) const noexcept -> bool {
-		return rhs.m_buffer == this->m_buffer /*&& rhs.m_pos == this->m_pos*/ &&
-			   rhs.m_displacement == this->m_displacement;
+		return rhs.m_buffer == this->m_buffer && rhs.m_displacement == this->m_displacement;
 	}
 
 	template <typename Tx, std::size_t N>
