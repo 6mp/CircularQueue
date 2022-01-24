@@ -33,12 +33,12 @@ public:
 	explicit CircularIterator(pointer buffer, std::size_t pos, std::size_t displacement)
 		: m_pos(pos), m_displacement(displacement), m_buffer(buffer) {}
 
-	constexpr auto& operator++() {
+	constexpr auto operator++() -> auto& {
 		m_pos = wrapper::increment(m_pos);
 		--m_displacement;
 		return *this;
 	}
-	constexpr auto& operator--() {
+	constexpr auto operator--() -> auto& {
 		m_pos = wrapper::decrement(m_pos);
 		++m_displacement;
 		return *this;
@@ -86,13 +86,13 @@ public:
 	//
 	// Default constructor, just allocate needed memory
 	//
-	constexpr explicit CircularQueue() : m_head(0), m_tail(0), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {}
+	constexpr explicit CircularQueue() : m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {}
 
 	//
 	// Construct a CircularQueue from multiple values
 	//
 	constexpr CircularQueue(std::initializer_list<Ty> values)
-		: m_head(0), m_tail(values.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
+		: m_tail(values.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		if (values.size() >= Size) {
 			throw std::runtime_error("std::initializer_list size is too large");
 		}
@@ -104,7 +104,7 @@ public:
 	//
 	template <std::input_iterator InputIt>
 	constexpr CircularQueue(InputIt begin, InputIt end)
-		: m_head(0), m_tail(std::distance(begin, end)), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
+		: m_tail(std::distance(begin, end)), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		if ((std::size_t)std::distance(begin, end) >= Size) {
 			throw std::runtime_error("container size is too large");
 		}
@@ -117,7 +117,7 @@ public:
 	//
 	template <std::ranges::range It>
 	explicit CircularQueue(It container)
-		: m_head(0), m_tail(container.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
+		:  m_tail(container.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		if (container.size() >= Size) {
 			throw std::runtime_error("container size is too large");
 		}
@@ -142,7 +142,7 @@ public:
 		this->m_head = other.m_head;
 		this->m_tail = other.m_tail;
 	}
-	constexpr CircularQueue& operator=(const CircularQueue& rhs) {
+	constexpr auto operator=(const CircularQueue& rhs) -> CircularQueue& {
 		if (rhs == this)
 			return *this;
 
@@ -160,7 +160,7 @@ public:
 		std::swap(this->m_head, other.m_head);
 		std::swap(this->m_tail, other.m_tail);
 	}
-	constexpr CircularQueue& operator=(CircularQueue&& rhs) noexcept {
+	constexpr auto operator =(CircularQueue&& rhs) noexcept -> CircularQueue& {
 		std::swap(this->m_storage, rhs.m_storage);
 		std::swap(this->m_head, rhs.m_head);
 		std::swap(this->m_tail, rhs.m_tail);
@@ -239,9 +239,8 @@ public:
 	//
 	constexpr auto clear() -> void {
 		if constexpr (std::is_destructible_v<Ty>) {
-			for (auto i = m_head; i != m_tail; ++i) {
+			for (auto i = m_head; i != m_tail; ++i)
 				std::destroy_at(std::addressof(m_storage[i]));
-			}
 		}
 		m_head = 0;
 		m_tail = 0;
