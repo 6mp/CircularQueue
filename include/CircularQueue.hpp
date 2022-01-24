@@ -90,7 +90,7 @@ public:
 	//
 	// Construct a CircularQueue from multiple values
 	//
-	 CircularQueue(std::initializer_list<Ty> values)
+	CircularQueue(std::initializer_list<Ty> values)
 		: m_tail(values.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		if (values.size() >= Size) {
 			throw std::runtime_error("std::initializer_list size is too large");
@@ -102,7 +102,7 @@ public:
 	// Construct a CircularQueue from a container with begin and end iterators
 	//
 	template <std::input_iterator InputIt>
-	 CircularQueue(InputIt begin, InputIt end)
+	CircularQueue(InputIt begin, InputIt end)
 		: m_tail(std::distance(begin, end)), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		if ((std::size_t)std::distance(begin, end) >= Size) {
 			throw std::runtime_error("container size is too large");
@@ -115,8 +115,7 @@ public:
 	// Construct a CircularQueue from a range container
 	//
 	template <std::ranges::range It>
-	explicit CircularQueue(It container)
-		:  m_tail(container.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
+	explicit CircularQueue(It container) : m_tail(container.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
 		if (container.size() >= Size) {
 			throw std::runtime_error("container size is too large");
 		}
@@ -159,7 +158,7 @@ public:
 		std::swap(this->m_head, other.m_head);
 		std::swap(this->m_tail, other.m_tail);
 	}
-	 auto operator =(CircularQueue&& rhs) noexcept -> CircularQueue& {
+	auto operator=(CircularQueue&& rhs) noexcept -> CircularQueue& {
 		std::swap(this->m_storage, rhs.m_storage);
 		std::swap(this->m_head, rhs.m_head);
 		std::swap(this->m_tail, rhs.m_tail);
@@ -218,7 +217,7 @@ public:
 	//
 	// Call the destructor of the queue head and increment
 	//
-	 auto pop() -> bool {
+	auto pop() -> bool {
 		if (m_tail == m_head)
 			return false;
 
@@ -236,7 +235,7 @@ public:
 	// Call the destructor of each item
 	// Reset head and tail
 	//
-	 auto clear() -> void {
+	auto clear() -> void {
 		if constexpr (std::is_destructible_v<Ty>) {
 			for (auto i = m_head; i != m_tail; ++i)
 				std::destroy_at(std::addressof(m_storage[i]));
