@@ -12,9 +12,8 @@ struct Test {
 	explicit Test(int x) : m_x(x) { std::printf("specialized ctor called\n"); }
 	~Test() { std::printf("dtor called\n"); }
 
-	Test(const Test& other) {
+	Test(const Test& other) : m_x(other.m_x) {
 		std::printf("copy ctor called\n");
-		this->m_x = other.m_x;
 	}
 	auto operator=(const Test& other) -> Test& {
 		std::printf("copy assignment called\n");

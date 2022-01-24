@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 project(CircularQueue)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(COMPILER_FLAGS "-Wall -Wpedantic -O2")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}")

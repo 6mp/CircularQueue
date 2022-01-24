@@ -68,7 +68,7 @@ public:
 	}
 
 	constexpr auto operator*() const noexcept -> reference { return m_buffer[m_pos]; }
-	constexpr auto operator->() const noexcept -> pointer { return std::addressof((m_buffer[m_pos])); }
+	constexpr auto operator->() const noexcept -> pointer { return std::addressof(m_buffer[m_pos]); }
 
 	std::size_t m_pos{};
 	std::size_t m_displacement{};
@@ -193,7 +193,7 @@ public:
 		if (nextTail == m_head)
 			return false;
 
-		std::construct_at(std::addressof(m_storage[currentTail]), std::forward<Ty>(value));
+		std::construct_at(std::addressof(m_storage[currentTail]), std::move(value));
 		m_tail = nextTail;
 		return true;
 	}
