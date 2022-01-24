@@ -21,8 +21,7 @@ struct IndexWrapper {
 };
 
 template <typename Ty, std::size_t Size>
-class CircularIterator {
-public:
+struct CircularIterator {
 	using iterator_category = std::bidirectional_iterator_tag;
 	using difference_type = std::ptrdiff_t;
 	using value_type = Ty;
