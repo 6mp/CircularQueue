@@ -25,7 +25,7 @@ jobs:
           CC: ${{ matrix.compiler }}
   
       - name: Set up ${{ matrix.compiler }}
-        uses: egor-tensin/setup-${{ matrix.compiler }}@v1
+        uses: egor-tensin/setup-${{env.CC}}@v1
         with:
           version: ${{ matrix.version }}
           platform: x64
