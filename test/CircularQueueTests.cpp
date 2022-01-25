@@ -30,7 +30,7 @@ struct Test {
 	int m_x{0};
 };
 
-TEST_CASE("constructors") {
+TEST_CASE("Constructors") {
 	SECTION("default") {}
 
 	SECTION("initializer_list") {}
@@ -44,13 +44,13 @@ TEST_CASE("constructors") {
 	SECTION("copy") {}
 }
 
-TEST_CASE("operators") {
+TEST_CASE("Operators") {
 	SECTION("move") {}
 
 	SECTION("copy") {}
 }
 
-TEST_CASE("modifiers") {
+TEST_CASE("Methods") {
 	SECTION("push") {
 		SECTION("lvalue") {}
 		SECTION("rvalue") {}
@@ -61,10 +61,10 @@ TEST_CASE("modifiers") {
 	SECTION("pop") {}
 
 	SECTION("clear") {}
+
+	SECTION("peek") {}
 }
 
-TEST_CASE("viewers") {
-	SECTION("peek") {}
+TEST_CASE("Iterators") {
 
-	SECTION("iterators") {}
 }
