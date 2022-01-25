@@ -23,7 +23,6 @@ jobs:
     - name: Set up GCC
       uses: egor-tensin/setup-gcc@v1
       with:
-          cc: 0
           version: 11
           platform: x64
 
