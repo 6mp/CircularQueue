@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ master ]
 
-
 jobs:
   linux:
     name: ${{ matrix.compiler }}
@@ -16,8 +15,6 @@ jobs:
       matrix:
         compiler:
           [gcc, clang]
-        version:
-          [11,13]
     steps:
       - uses: actions/checkout@v2
         env:
