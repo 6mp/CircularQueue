@@ -1,6 +1,2 @@
 # Project exclude paths
-/cmake-build-debug/
-/cmake-build-release/
-# Project exclude paths
-/cmake-build-debug-mingw/
-/cmake-build-release-mingw/
+/cmake-*
