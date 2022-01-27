@@ -22,7 +22,7 @@ jobs:
         platform: x64
 
   linux:
-    #needs: matrix_prep
+    needs: matrix_prep
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
