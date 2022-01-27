@@ -6,23 +6,23 @@ on:
   pull_request:
     branches: [ master ]
 jobs:
-  matrix_prep:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Set up GCC
-      uses: egor-tensin/setup-gcc@v1
-      with:
-          version: 11
-          platform: x64
-          
-    - name: Set up Clang
-      uses: egor-tensin/setup-clang@v1
-      with:
-        version: 13
-        platform: x64
-
+#  matrix_prep:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Set up GCC
+#      uses: egor-tensin/setup-gcc@v1
+#      with:
+#          version: 11
+#          platform: x64
+#          
+#    - name: Set up Clang
+#      uses: egor-tensin/setup-clang@v1
+#      with:
+#        version: 13
+#        platform: x64
+#
   linux:
-    needs: matrix_prep
+    #needs: matrix_prep
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -34,15 +34,20 @@ jobs:
         env:
           CC: ${{ matrix.compiler }}
           CXX: ${{ matrix.compiler }}
+          BUILD_TYPE: Release
+  
+      - name: Print some stuff
+        run: echo " Print a single environment variable (the commit SHA ) - ${{ github.compiler }} "
   
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -B ${{github.workspace}}/build --Release
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        
       - name: Build
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --Release
-
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+        
       - name: Test
         working-directory: ${{github.workspace}}/build
         # Execute tests defined by the CMake configuration.  
