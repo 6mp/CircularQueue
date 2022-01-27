@@ -37,7 +37,7 @@ jobs:
           BUILD_TYPE: Release
   
       - name: Print some stuff
-        run: echo " Print a single environment variable (the commit SHA ) - ${{ github.compiler }} "
+        run: echo "g++ -version; clang++ -version"
   
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
