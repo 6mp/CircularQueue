@@ -91,11 +91,17 @@ public:
 	//
 	CircularQueue(std::initializer_list<Ty> values)
 		: m_tail(values.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
-		if (values.size() >= Size) {
+		if (values.size() > Size) {
 			throw std::runtime_error("std::initializer_list size is too large");
 		}
 		std::ranges::copy(values, m_storage);
 	}
+
+//	template <typename... Args>
+//	constexpr explicit CircularQueue(Args&&... values) : m_head(0), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
+//		static_assert(sizeof...(values) <= Size, "parameter pack size must be <= Size");
+//		(std::construct_at(&m_storage[m_tail++], std::forward<Args>(values)), ...);
+//	}
 
 	//
 	// Construct a CircularQueue from a container with begin and end iterators
@@ -103,7 +109,7 @@ public:
 	template <std::input_iterator InputIt>
 	CircularQueue(InputIt begin, InputIt end)
 		: m_tail(std::distance(begin, end)), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
-		if ((std::size_t)std::distance(begin, end) >= Size) {
+		if ((std::size_t)std::distance(begin, end) > Size) {
 			throw std::runtime_error("container size is too large");
 		}
 
@@ -115,7 +121,7 @@ public:
 	//
 	template <std::ranges::range It>
 	explicit CircularQueue(It container) : m_tail(container.size()), m_storage((Ty*)std::malloc(Size * sizeof(Ty))) {
-		if (container.size() >= Size) {
+		if (container.size() > Size) {
 			throw std::runtime_error("container size is too large");
 		}
 		std::ranges::copy(container, m_storage);
@@ -139,6 +145,7 @@ public:
 		this->m_head = other.m_head;
 		this->m_tail = other.m_tail;
 	}
+
 	auto operator=(const CircularQueue& rhs) -> CircularQueue& {
 		if (rhs == this)
 			return *this;
@@ -242,6 +249,10 @@ public:
 		m_head = 0;
 		m_tail = 0;
 	}
+
+	[[nodiscard]] auto size() const -> int { return m_tail - m_head; }
+
+	[[nodiscard]] constexpr auto max_size() const -> int { return Size; }
 
 	//
 	// Iterators

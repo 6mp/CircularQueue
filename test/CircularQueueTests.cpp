@@ -5,24 +5,19 @@
 #include <CircularQueue.hpp>
 
 struct Test {
-	Test() { std::printf("default ctor called\n"); }
-	explicit Test(int x) : m_x(x) { std::printf("specialized ctor called\n"); }
-	~Test() { std::printf("dtor called\n"); }
+	Test() = default;
+	explicit Test(int x) : m_x(x) {}
+	~Test() = default;
 
-	Test(const Test& other) : m_x(other.m_x) { std::printf("copy ctor called\n"); }
+	Test(const Test& other) : m_x(other.m_x) {}
 	auto operator=(const Test& other) -> Test& {
-		std::printf("copy assignment called\n");
 		this->m_x = other.m_x;
 		return *this;
 	}
 
 
-	Test(Test&& other) noexcept {
-		std::printf("move ctor called\n");
-		std::swap(this->m_x, other.m_x);
-	}
+	Test(Test&& other) noexcept { std::swap(this->m_x, other.m_x); }
 	auto operator=(Test&& other) noexcept -> Test& {
-		std::printf("move assignment called\n");
 		std::swap(this->m_x, other.m_x);
 		return *this;
 	}
@@ -31,17 +26,52 @@ struct Test {
 };
 
 TEST_CASE("Constructors") {
-	SECTION("default") {}
+	SECTION("default") {
+		auto instance = CircularQueue<Test, 10>{};
 
-	SECTION("initializer_list") {}
+		REQUIRE(instance.size() == 0);
+		REQUIRE(instance.max_size() == 10);
+	}
 
-	SECTION("input_iterator") {}
+	SECTION("initializer_list") {
+		auto instance = CircularQueue<Test, 5>{Test{0}, Test{1}, Test{2}, Test{3}, Test{4}};
 
-	SECTION("range") {}
+		REQUIRE(instance.size() == 5);
+		REQUIRE(instance.max_size() == 5);
+	}
 
-	SECTION("move") {}
+	SECTION("input_iterator") {
+		std::vector<Test> input_tests{Test{0}, Test{1}, Test{2}, Test{3}, Test{4}, Test{5}, Test{6}, Test{7}, Test{8}};
+		auto instance = CircularQueue<Test, 10>{input_tests.begin(), input_tests.end()};
 
-	SECTION("copy") {}
+		REQUIRE(instance.size() == 9);
+		REQUIRE(instance.max_size() == 10);
+	}
+
+	SECTION("range") {
+		std::vector<Test> input_tests{Test{0}, Test{1}, Test{2}, Test{3},  Test{4},  Test{5},  Test{6},
+									  Test{7}, Test{8}, Test{9}, Test{10}, Test{11}, Test{12}, Test{13}};
+		auto instance = CircularQueue<Test, 15>{input_tests};
+
+		REQUIRE(instance.size() == 14);
+		REQUIRE(instance.max_size() == 15);
+	}
+
+	SECTION("move") {
+		auto move_me = CircularQueue<Test, 3>{Test{0}, Test{1}, Test{2}};
+		CircularQueue<Test, 3> new_queue = CircularQueue<Test, 3>{std::move(move_me)};
+
+		REQUIRE(move_me.size() == 0);
+		REQUIRE(new_queue.size() == 3);
+	}
+
+	SECTION("copy") {
+		auto copy_me = CircularQueue<Test, 3>{Test{0}, Test{1}, Test{2}};
+		auto new_queue = CircularQueue<Test, 3>{copy_me};
+
+		REQUIRE(copy_me.size() == 3);
+		REQUIRE(new_queue.size() == 3);
+	}
 }
 
 TEST_CASE("Operators") {
@@ -65,6 +95,4 @@ TEST_CASE("Methods") {
 	SECTION("peek") {}
 }
 
-TEST_CASE("Iterators") {
-
-}
+TEST_CASE("Iterators") {}
