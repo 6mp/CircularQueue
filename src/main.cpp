@@ -6,7 +6,6 @@
 #include <CircularQueue.hpp>
 #include <ranges>
 #include <iostream>
-#include <Windows.h>
 
 struct Test {
 	Test() { std::printf("default ctor called\n"); }
