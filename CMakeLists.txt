@@ -8,9 +8,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         message(STATUS "clang-cl frontend detected")
         set(COMPILER_FLAGS "/EHs /O2 -Wno-unknown-argument")
     elseif (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU") # clang native
-        message(STATUS "clang-cl frontend detected")
+        message(STATUS "clang with GNU frontend detected")
         set(COMPILER_FLAGS "-Wall -Wpedantic -O2")
     endif()
+else()
+    set(COMPILER_FLAGS "-Wall -Wpedantic -O2")
 endif()
 
 
