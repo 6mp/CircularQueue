@@ -66,11 +66,6 @@ TEST_CASE("Constructors") {
 	}
 
 	SECTION("copy") {
-		auto copy_me = CircularQueue<Test, 3>{Test{0}, Test{1}, Test{2}};
-		auto new_queue = CircularQueue<Test, 3>{copy_me};
-
-		REQUIRE(copy_me.size() == 3);
-		REQUIRE(new_queue.size() == 3);
 	}
 }
 

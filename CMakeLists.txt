@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.21)
 project(CircularQueue)
 
-set(CMAKE_CXX_STANDARD 20)
-set(COMPILER_FLAGS "-Wall -Wpedantic -O2")
+set(CMAKE_CXX_STANDARD 23)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC") # clang-cl
+        message(STATUS "clang-cl frontend detected")
+        set(COMPILER_FLAGS "/EHs /O2 -Wno-unknown-argument")
+    elseif (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU") # clang native
+        message(STATUS "clang-cl frontend detected")
+        set(COMPILER_FLAGS "-Wall -Wpedantic -O2")
+    endif()
+endif()
+
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS}")
